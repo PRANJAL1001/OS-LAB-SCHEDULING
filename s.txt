@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Structure for a process
+struct Process {
+    int pid; // Process ID
+    int arrival_time; // Arrival time
+    int burst_time; // Burst time
+    int remaining_time; // Remaining time
+    int completion_time; // Completion time
+};
+
+// Function to print the process table with wait time and turnaround time
+void print_process_table(struct Process *processes, int n) {
+    int total_wait_time = 0;
+    int total_turnaround_time = 0;
+    printf("Process\tArrival Time\tBurst Time\tCompletion Time\tTurnaround Time\tWait Time\n");
+    for (int i = 0; i < n; i++) {
+        int turnaround_time = processes[i].completion_time - processes[i].arrival_time;
+        int wait_time = turnaround_time - processes[i].burst_time;
+        total_wait_time += wait_time;
+        total_turnaround_time += turnaround_time;
+        printf("%d\t%d\t\t%d\t\t%d\t\t%d\t\t\t%d\n", processes[i].pid, processes[i].arrival_time, processes[i].burst_time, processes[i].completion_time, turnaround_time, wait_time);
+    }
+    printf("Average Wait Time: %.2f\n", (float) total_wait_time / n);
+    printf("Average Turnaround Time: %.2f\n", (float) total_turnaround_time / n);
+}
+
+int main() {
+    int n; // Number of processes
+    printf("Enter the number of processes: ");
+    scanf("%d", &n);
+
+    // Array of processes
+    struct Process processes[n];
+
+    // Input process details
+    for (int i = 0; i < n; i++) {
+        printf("Enter the arrival time and burst time for process %d: ", i + 1);
+        scanf("%d %d", &processes[i].arrival_time, &processes[i].burst_time);
+        processes[i].pid = i + 1;
+        processes[i].remaining_time = processes[i].burst_time;
+    }
+
+    int current_time = 0; // Current time
+    int completed = 0; // Number of completed processes
+
+    // Process scheduling loop
+    while (completed < n) {
+        int shortest_index = -1; // Index of the process with the shortest remaining time
+        int shortest_time = 999999; // Shortest remaining time
+        for (int i = 0; i < n; i++) {
+            if (processes[i].arrival_time <= current_time && processes[i].remaining_time < shortest_time && processes[i].remaining_time > 0) {
+                shortest_index = i;
+                shortest_time = processes[i].remaining_time;
+            }
+        }
+        if (shortest_index == -1) {
+            // No process is ready to execute, increment the time
+            current_time++;
+        } else {
+            // Execute the process for one time unit
+            processes[shortest_index].remaining_time--;
+            current_time++;
+            if (processes[shortest_index].remaining_time == 0) {
+                // Process has completed
+                completed++;
+                processes[shortest_index].completion_time = current_time;
+            }
+        }
+    }
+
+    // Print the process table
+    print_process_table(processes, n);
+
+    return 0;
+}
